@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Model artifacts / weights / data — MUST NOT be committed.
+# The model bundle (config.json, vocab.json, model_manifest.json, best.pt / model.safetensors)
+# lives on the Hugging Face Hub, never in this repository.
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.tar.gz
+/models/
+/artifacts/
+/data/
+
+# Local caches
+.hf_cache/
+.radgraphit_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

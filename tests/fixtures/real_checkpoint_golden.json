@@ -1,0 +1,40 @@
+{
+  "0": {
+    "text": "Non si evidenzia pneumotorace nel torace destro .",
+    "entities": {
+      "1": {
+        "tokens": "pneumotorace",
+        "label": "Observation::definitely absent",
+        "start_ix": 3,
+        "end_ix": 3,
+        "relations": [
+          [
+            "located_at",
+            "2"
+          ]
+        ]
+      },
+      "2": {
+        "tokens": "torace",
+        "label": "Anatomy::definitely present",
+        "start_ix": 5,
+        "end_ix": 5,
+        "relations": []
+      },
+      "3": {
+        "tokens": "destro",
+        "label": "Anatomy::definitely present",
+        "start_ix": 6,
+        "end_ix": 6,
+        "relations": [
+          [
+            "modify",
+            "2"
+          ]
+        ]
+      }
+    },
+    "data_source": null,
+    "data_split": "inference"
+  }
+}
