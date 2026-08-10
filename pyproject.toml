@@ -1,0 +1,144 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "RadGraph-IT"
+version = "1.0.1"
+description = "RadGraph graph inference for Italian radiology reports, with output in the canonical RadGraph-XL format."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "LICENSES/Third-Party.md"]
+authors = [
+    { name = "Daniel Rabottini" },
+    { name = "Edoardo Avenia" },
+    { name = "Rocco Angelella" },
+]
+keywords = [
+    "radiology",
+    "nlp",
+    "information-extraction",
+    "radgraph",
+    "italian",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Healthcare Industry",
+    "Natural Language :: Italian",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+    # License is declared via the SPDX 'license' field (PEP 639); no legacy "License ::" classifier.
+]
+
+# Minimal runtime footprint: the encoder backend (torch + transformers), the compatibility
+# tokenizer (nltk), the Hub download path, and safe checkpoint loading (safetensors).
+dependencies = [
+    "torch>=2.1",
+    "transformers>=4.39",
+    "nltk>=3.8",
+    "huggingface_hub>=0.23",
+    "packaging>=23",
+    "safetensors>=0.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff==0.16.0",
+    "mypy>=1.11",
+    "build>=1.2",
+    "twine>=5",
+    "pre-commit>=3.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/therabo/RadGraph-IT"
+Repository = "https://github.com/therabo/RadGraph-IT"
+Issues = "https://github.com/therabo/RadGraph-IT/issues"
+Changelog = "https://github.com/therabo/RadGraph-IT/blob/main/CHANGELOG.md"
+
+[project.scripts]
+radgraphit = "radgraphit.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/radgraphit"]
+
+[tool.hatch.build.targets.sdist]
+# Keep the distribution lean: ship the package, notices, changelog, and maintainer manifest tool.
+# Never ship weights, datasets, or clinical text (there are none in the tree anyway).
+include = [
+    "src/radgraphit",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSES",
+    "scripts/publish_model.py",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "PTH", "RUF"]
+ignore = [
+    "B008",  # function call in default argument — intentional for registry defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/radgraphit/inference/backends/dygie_v2/*" = ["N812"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["radgraphit"]
+
+[tool.mypy]
+# Assume 3.12 so mypy can parse the installed third-party stubs (numpy, pulled in via torch, ships
+# PEP 695 `type` statements that don't parse under a 3.10 target). The real >=3.10 floor is enforced
+# by ruff (target-version = "py310") and by the CI test matrix (3.10/3.11/3.12).
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+files = ["src/radgraphit"]
+# torch/transformers/nltk/huggingface_hub ship incomplete or no stubs; don't fail typecheck on
+# their missing type information (our own code stays fully typed).
+[[tool.mypy.overrides]]
+module = [
+    "transformers.*",
+    "nltk.*",
+    "huggingface_hub.*",
+    "safetensors.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# The vendored/adapted DyGIE-v2 backend is a faithful port of upstream PyTorch modules; hold it
+# to import-time typing but relax the strictest rules that fight idiomatic nn.Module code.
+module = ["radgraphit.inference.backends.dygie_v2.*"]
+disallow_any_generics = false
+warn_return_any = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "integration: opt-in tests that require a real v2 checkpoint (see RADGRAPHIT_TEST_MODEL_DIR).",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["radgraphit"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
